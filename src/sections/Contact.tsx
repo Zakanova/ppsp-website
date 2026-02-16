@@ -104,18 +104,18 @@ const Contact = () => {
       icon: Phone,
       label: 'PHONE',
       value: '916-381-8304',
-      subValue: 'Mon-Sat 9AM-6PM',
+      subValue: 'Mon-Sat 9AM-5PM',
     },
     {
       icon: Mail,
       label: 'EMAIL',
-      value: 'info@ppsp-vintage.com',
+      value: 'info@ppsprecycling.com',
       subValue: 'We reply within 24hrs',
     },
     {
       icon: Clock,
       label: 'HOURS',
-      value: 'Mon - Sat: 9AM - 6PM',
+      value: 'Mon - Sat: 9AM - 5PM',
       subValue: 'Sunday: Closed',
     },
   ];
