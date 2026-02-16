@@ -12,7 +12,11 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
   const sectionRef = useRef<HTMLElement>(null);
+
+  // Rate limiting: max 1 submission per 30 seconds
+  const RATE_LIMIT_MS = 30000;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -36,18 +40,46 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
+
+    // Rate limiting check
+    const now = Date.now();
+    if (now - lastSubmitTime < RATE_LIMIT_MS) {
+      setIsSubmitting(false);
+      setError('Please wait 30 seconds before sending another message.');
+      return;
+    }
+
+    // Input validation - prevent XSS
+    const sanitizedName = formData.name.replace(/[<>]/g, '').trim();
+    const sanitizedMessage = formData.message.replace(/[<>]/g, '').trim();
+    
+    if (sanitizedName.length < 2 || sanitizedMessage.length < 10) {
+      setIsSubmitting(false);
+      setError('Please enter a valid name and message (min 10 characters).');
+      return;
+    }
     
     try {
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error('Email configuration missing');
+      }
+
       await emailjs.send(
-        'service_2n2wp4f',
-        'template_2ptkgbp',
+        serviceId,
+        templateId,
         {
-          name: formData.name,
+          name: sanitizedName,
           email: formData.email,
-          message: formData.message,
+          message: sanitizedMessage,
         },
-        'bDtZRRUSav3APye6G'
+        publicKey
       );
+
+      setLastSubmitTime(now);
       
       setIsSubmitting(false);
       setIsSubmitted(true);
