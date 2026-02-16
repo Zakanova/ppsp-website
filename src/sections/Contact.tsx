@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 
 const Contact = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -10,6 +11,7 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -33,16 +35,30 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setFormData({ name: '', email: '', message: '' });
-    
-    // Reset success message after 5 seconds
-    setTimeout(() => setIsSubmitted(false), 5000);
+    try {
+      await emailjs.send(
+        'service_2n2wp4f',
+        'template_2ptkgbp',
+        {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        },
+        'bDtZRRUSav3APye6G'
+      );
+      
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      setFormData({ name: '', email: '', message: '' });
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } catch (err) {
+      setIsSubmitting(false);
+      setError('Failed to send message. Please try again or call us directly.');
+    }
   };
 
   const contactInfo = [
@@ -207,6 +223,13 @@ const Contact = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {error && (
+                    <div className="flex items-center gap-2 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400">
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-xs tracking-wider text-[#f0f0f0]/50 mb-2 font-mono">
                       &gt; NAME:
